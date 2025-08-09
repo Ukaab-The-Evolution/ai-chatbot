@@ -1,87 +1,93 @@
 import os
+import requests
 import streamlit as st
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
+import datetime
+import re
 
-
-# Load environment variables from chatbot.env
+# Load API key
 load_dotenv("chatbot.env")
 API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not API_KEY:
-    st.error("API Key not found. Please check your chatbot.env file.")
+    st.error("❌ API Key not found. Please check chatbot.env file.")
+    st.stop()
 
-# Initialize Gemini
-client = genai.Client(api_key=API_KEY)
-model = "gemini-2.0-flash"
+# Session states
+if "email_verified" not in st.session_state:
+    st.session_state.email_verified = False
+if "user_email" not in st.session_state:
+    st.session_state.user_email = ""
+if "history" not in st.session_state:
+    st.session_state.history = []
 
-def generate_response(history):
-    contents = []
-    for role, msg in history:
-        contents.append(
-            types.Content(
-                role=role,
-                parts=[types.Part(text=msg)]
-            )
+MAX_HISTORY = 20
+
+# Send message to backend
+def send_message_to_backend(user_message):
+    try:
+        response = requests.post(
+            "http://127.0.0.1:3000/chat",
+            json={"message": user_message},
+            timeout=30
         )
+        if response.status_code == 200:
+            return response.json().get("response", "⚠️ No response from AI.")
+        else:
+            return f"⚠️ API error: {response.status_code}"
+    except requests.exceptions.RequestException as e:
+        return f"⚠️ Could not connect to chatbot API: {e}"
 
-
-    # Add system instruction for truck driver assistant
-    system_instruction = types.Content(
-        role="system",
-        parts=[types.Part(text="You are a helpful assistant for pakistani truck drivers. Offer practical advice, safety tips, and support for life on the road. Be friendly, concise, and knowledgeable about trucking, logistics, and travel. Don't talk too much and don't be too verbose. Answer in the language the user used in the last message.")]
-    )
-
-    config = types.GenerateContentConfig(
-        system_instruction=system_instruction,
-        response_mime_type="text/plain"
-    )
-
-    # Generate and stream response
-    response_text = ""
-    for chunk in client.models.generate_content_stream(
-        model=model,
-        contents=contents,
-        config=config,
-    ):
-        response_text += chunk.text or ""
-
-    return response_text
-
-# Streamlit App Setup
-
+# Streamlit UI
 st.set_page_config("Truck Driver Assistant", page_icon="🚚")
 st.title("🚚 Truck Driver Assistant")
-st.markdown("Chat with your **Truck Driver Assistant** for tips, advice, and support on the road.")
 
-# Session state to store chat history
-if "history" not in st.session_state:
-    st.session_state.history = []  # list of (role, message) tuples
+# Email input
+if not st.session_state.email_verified:
+    email = st.text_input("📧 Enter your email to start:", placeholder="example@email.com")
+    if st.button("✅ Proceed"):
+        if re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            st.session_state.email_verified = True
+            st.session_state.user_email = email
+            st.success("✅ Email accepted! You can now chat with the assistant.")
+            st.rerun()
+        else:
+            st.error("❌ Please enter a valid email address to continue.")
+    st.stop()
 
-# User input
+# Quick Questions
+st.subheader("🔹 Quick Questions")
+cols = st.columns(3)
+if cols[0].button("🚚 Best Routes"):
+    st.session_state.history.append(("user", "What are the safest trucking routes in Pakistan?"))
+if cols[1].button("🛠️ Truck Maintenance"):
+    st.session_state.history.append(("user", "Give me some truck maintenance tips."))
+if cols[2].button("⛽ Fuel Saving"):
+    st.session_state.history.append(("user", "How can I save fuel on long trips?"))
+
+# Chat Form
 with st.form("chat_form", clear_on_submit=True):
     user_input = st.text_input("You:", placeholder="Ask your Truck Driver Assistant anything...")
     submitted = st.form_submit_button("Send")
 
-
 if submitted and user_input.strip():
-    # Add user input to chat history
-    st.session_state.history.append(("user", user_input))
+    timestamp = datetime.datetime.now().strftime("%H:%M")
+    st.session_state.history.append(("user", f"{timestamp} - {user_input}"))
 
-    # Get response from Gemini
-    with st.spinner("Your assistant is thinking..."):
-        response = generate_response(st.session_state.history)
-    st.session_state.history.append(("model", response))
+    with st.spinner("💡 Your assistant is thinking..."):
+        bot_reply = send_message_to_backend(user_input)
+        st.session_state.history.append(("model", f"{timestamp} - {bot_reply}"))
+
+    if len(st.session_state.history) > MAX_HISTORY:
+        st.session_state.history = st.session_state.history[-MAX_HISTORY:]
 
 # Display conversation
-
 for role, msg in st.session_state.history:
-    if role == "user":
-        st.markdown(f"**🧑 You:** {msg}")
-    else:
-        st.markdown(f"**🚚 Assistant:** {msg}")
+    with st.chat_message("user" if role == "user" else "assistant"):
+        st.markdown(f"**{'🧑 You' if role == 'user' else '🚚 Assistant'}:** {msg}")
 
-# Clear button
+# Clear chat button
 if st.button("🧹 Clear Chat"):
     st.session_state.history = []
+    st.rerun()
+
