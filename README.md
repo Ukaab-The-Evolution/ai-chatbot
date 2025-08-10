@@ -1,93 +1,328 @@
-# 🚚 Truck Driver Assistant – AI Chatbot
+# 🚚 Truck Driver Assistant API
 
-An AI-powered chatbot that helps truck drivers with information such as the best trucking routes, vehicle maintenance tips, and fuel-saving techniques. Built with **Streamlit** for the frontend and **Python + Gemini AI** for the backend.
+A production-ready FastAPI backend for a multi-language truck driver assistant chatbot with Google Gemini AI integration. Built following SOLID principles with clean architecture.
 
----
+## 🏗️ Architecture Overview
 
-## 📌 Features
+This project implements a clean, modular architecture following SOLID principles:
 
-- ✅ Email verification before starting the chat
-- 💬 Natural language conversations powered by Gemini AI
-- 🛣️ Quick access questions: routes, maintenance, fuel savings
-- 🕓 Timestamped chat history
-- 🧹 Option to clear chat
-- 🔐 Environment-based API key handling
+```
+truck-driver-assistant/
+├── app/                    # Main application package
+│   ├── __init__.py
+│   ├── main.py            # FastAPI app factory
+│   ├── api/               # API layer
+│   │   ├── __init__.py
+│   │   └── routes/
+│   │       ├── __init__.py
+│   │       ├── chat.py    # Chat endpoints
+│   │       └── utils.py   # Utility endpoints
+│   ├── core/              # Core configuration
+│   │   ├── __init__.py
+│   │   └── config.py      # Settings & language config
+│   ├── models/            # Data models
+│   │   ├── __init__.py
+│   │   └── schemas.py     # Pydantic models
+│   ├── services/          # Business logic
+│   │   ├── __init__.py
+│   │   ├── interfaces.py  # Service abstractions
+│   │   ├── gemini_service.py  # AI service implementation
+│   │   └── language_service.py # Language operations
+│   └── utils/             # Utilities
+│       ├── __init__.py
+│       ├── exceptions.py  # Error handling
+│       └── logging.py     # Logging configuration
+├── main.py               # Application entry point
+├── requirements.txt      # Python dependencies
+├── .env.example         # Environment variables template
+├── railway.toml         # Railway deployment config
+├── Procfile            # Process file for deployment
+└── README.md           # This file
+```
 
----
+## ✨ Features
 
-## 📁 Project Structure
+- 🌍 **Multi-language Support**: English, Urdu, Punjabi, Balochi, Saraiki, Pushto
+- 🤖 **Google Gemini AI Integration**: Advanced AI responses for truck drivers
+- 🔄 **Auto-routing**: Intelligent language detection and routing
+- 📱 **RESTful API**: Clean, documented REST endpoints
+- 🛡️ **Error Handling**: Comprehensive error management
+- 📚 **Documentation**: Auto-generated API docs with Swagger
+- 🚀 **Production Ready**: Railway deployment configuration
+- 🔒 **CORS Support**: Frontend integration ready
+- 📊 **Logging**: Structured logging for monitoring
+
+## 🎯 SOLID Principles Implementation
+
+### Single Responsibility Principle (SRP)
+- Each module has one clear purpose
+- Services handle specific business logic
+- Routes only manage HTTP requests
+
+### Open/Closed Principle (OCP)
+- Easy to extend with new languages
+- Can add new AI services without modification
+- Extensible route structure
+
+### Liskov Substitution Principle (LSP)
+- All services implement interfaces
+- Mock services for testing
+- Interchangeable implementations
+
+### Interface Segregation Principle (ISP)
+- Small, focused interfaces
+- No unnecessary dependencies
+- Clean contracts
+
+### Dependency Inversion Principle (DIP)
+- Depends on abstractions, not concretions
+- Dependency injection throughout
+- Easy testing and mocking
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.11+
+- Google Gemini API key
+
+### Installation
+
+1. **Clone the repository:**
+```bash
+git clone <repository-url>
+cd truck-driver-assistant
+```
+
+2. **Create virtual environment:**
+```bash
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# Linux/Mac
+source venv/bin/activate
+```
+
+3. **Install dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+4. **Configure environment:**
+```bash
+# Copy environment template
+copy .env.example .env  # Windows
+cp .env.example .env    # Linux/Mac
+
+# Edit chatbot.env and add your Gemini API key
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+5. **Run the application:**
+```bash
+python main.py
+```
+
+6. **Access the API:**
+- API: http://localhost:8000
+- Swagger Docs: http://localhost:8000/docs
+
+## 📚 API Documentation
+
+### Authentication
+No authentication required for this version.
+
+### Base URL
+- Local: `http://localhost:8000`
+- Production: `https://your-railway-app.railway.app`
+
+### Endpoints
+
+#### Chat Endpoints
+
+**Auto-route Chat**
+```http
+POST /chat
+```
+Automatically routes to appropriate language based on context.
+
+**Language-specific Endpoints**
+```http
+POST /chat/english
+POST /chat/urdu
+POST /chat/punjabi
+POST /chat/balochi
+POST /chat/saraiki
+POST /chat/pushto
+```
+
+#### Utility Endpoints
+
+**Health Check**
+```http
+GET /health
+```
+
+**Supported Languages**
+```http
+GET /languages
+```
+
+### Request Schema
+
+```json
+{
+  "user_id": "string",
+  "role": "string",
+  "message": "string",
+  "context": {
+    "screen": "string",
+    "entity_id": "string",
+    "language": "string"
+  },
+  "attachments": [
+    {
+      "type": "pdf|image",
+      "url": "string",
+      "filename": "string"
+    }
+  ],
+  "location": {
+    "latitude": 0.0,
+    "longitude": 0.0
+  },
+  "timestamp": "2025-08-09T10:30:00Z"
+}
+```
+
+### Response Schema
+
+```json
+{
+  "response": "string",
+  "language": "string",
+  "timestamp": "2025-08-09T10:30:00Z",
+  "user_id": "string"
+}
+```
+
+### Example Request
 
 ```bash
-📦 truck-driver-assistant
-│
-├── streamlit_chatbot.py       # Frontend: Streamlit app
-├── server.py                  # Backend: Fastify server with Gemini API
-├── chatbot.env                # Environment variables (Gemini API key)
-├── start_chatbot.sh           # Bash script to run both frontend and backend
-├── README.md                  # Project documentation (this file)
+curl -X POST "http://localhost:8000/chat/english" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "driver_123",
+    "role": "user",
+    "message": "What are some safety tips for driving in rain?",
+    "context": {
+      "screen": "safety_screen",
+      "language": "english"
+    },
+    "timestamp": "2025-08-09T10:30:00Z"
+  }'
 ```
 
----
+### Example Response
 
-## 🔐 Environment Setup
-
-1. Go to [Google MakerSuite](https://makersuite.google.com/)
-2. Generate your **Gemini API Key**
-3. Create a file named `chatbot.env` in the root directory with the following content:
-
-```env
-GEMINI_API_KEY=your_actual_api_key_here
+```json
+{
+  "response": "Here are essential safety tips for driving in rain: 1) Reduce speed and increase following distance, 2) Turn on headlights for better visibility, 3) Avoid sudden braking or steering, 4) Check tire tread regularly, 5) If visibility is poor, pull over safely.",
+  "language": "english",
+  "timestamp": "2025-08-09T10:30:05Z",
+  "user_id": "driver_123"
+}
 ```
 
----
 
-## 📦 Requirements
+## 🚀 Deployment
 
-You need to install dependencies for **both the frontend (Python)** and **backend (Node.js)**.
+### Railway Deployment
 
-### ✅ Python Requirements (Frontend)
+1. **Connect to Railway:**
+   - Sign up at [railway.app](https://railway.app)
+   - Connect your GitHub repository
 
-Make sure Python 3.10+ is installed. Then run:
+2. **Environment Variables:**
+   Set in Railway dashboard:
+   ```
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
 
+3. **Deploy:**
+   - Push to main branch
+   - Railway automatically deploys using `railway.toml` configuration
+
+### Manual Deployment
+
+1. **Build and run:**
 ```bash
-pip install streamlit requests python-dotenv
+# Production mode
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-These libraries handle the chat UI, API communication, and environment variables.
+2. **Using Docker (optional):**
+```dockerfile
+FROM python:3.11-slim
 
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-## 🚀 How to Run the Project
+COPY . .
+EXPOSE 8000
 
-You can either run it **automatically using the provided script**, or start each part manually.
-
-### 🔁 Option 1: Run Everything (Recommended)
-
-The `start_chatbot.sh` script:
-- Kills any process using port 3000
-- Starts the backend server
-- Launches the Streamlit frontend
-
----
-
-🧩 Option 2: Manual Execution
-1. Start the FastAPI Backend
-```bash
-uvicorn server:app --host 127.0.0.1 --port 3000
-```
-2. Start the Streamlit Frontend (in a new terminal)
-```bash
-streamlit run streamlit_chatbot.py
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-Then open your browser and go to:
-```bash
-👉 http://localhost:8501
-```
-This launches the Fastify API server at `http://localhost:3000`.
+## 🔧 Configuration
 
+### Environment Variables
 
-## ⚙️ How It Works
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `GEMINI_API_KEY` | Google Gemini API key | - | Yes |
+| `PORT` | Server port | 8000 | No |
+| `HOST` | Server host | 0.0.0.0 | No |
+| `DEBUG` | Debug mode | false | No |
+| `CORS_ORIGINS` | Allowed CORS origins | * | No |
 
-- **Frontend (`streamlit_chatbot.py`)** handles user input, email verification, chat history, and UI.
-- **Backend (`server.js`)** receives the message and uses Gemini AI to generate responses.
-- Communication happens via an internal API call to `http://localhost:3000/chat`.
+### Language Configuration
+
+Supported languages and their codes:
+- `english` - English
+- `urdu` - اردو
+- `punjabi` - ਪੰਜਾਬੀ
+- `balochi` - بلوچی
+- `saraiki` - سرائیکی
+- `pushto` - پښتو
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Import Errors**
+- Ensure you're in the project root directory
+- Check virtual environment is activated
+- Verify all dependencies are installed
+
+**API Key Issues**
+- Verify `GEMINI_API_KEY` is set correctly
+- Check API key has proper permissions
+- Ensure `.env` file is named `chatbot.env`
+
+**Port Issues**
+- Default port is 8000
+- Change with `PORT` environment variable
+- Ensure port is not in use
+
+**CORS Issues**
+- Configure `CORS_ORIGINS` for production
+- Use specific origins instead of `*`
+
+### Development Guidelines
+
+- Follow SOLID principles
+- Write tests for new features
+- Update documentation
+- Use type hints
+- Follow PEP 8 style guide
