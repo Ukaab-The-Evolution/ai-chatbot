@@ -1,4 +1,4 @@
-# 🚚 Truck Driver Assistant API
+# 🚚 Truck Driver Assistant 
 
 A production-ready FastAPI backend for a multi-language truck driver assistant chatbot with Google Gemini AI integration. Built following SOLID principles with clean architecture.
 
