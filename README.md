@@ -319,15 +319,3 @@ Supported languages and their codes:
 - Configure `CORS_ORIGINS` for production
 - Use specific origins instead of `*`
 
-### Development Guidelines
-
-- Follow SOLID principles
-- Write tests for new features
-- Update documentation
-- Use type hints
-- Follow PEP 8 style guide
-
-## Notes added by assistant
-- Rewrote `app/core/config.py` and made `app/services/gemini_service.py` robust to missing Google Gemini client or API key (offline fallback available).
-- Added `streamlit_chatbot.py` Streamlit frontend and `app/utils/speech_utils.py` as optional utilities.
-- Added `start_chatbot.sh` for local development.
