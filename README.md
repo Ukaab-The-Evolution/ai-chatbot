@@ -43,6 +43,7 @@ truck-driver-assistant/
 ## ✨ Features
 
 - 🌍 **Multi-language Support**: English, Urdu, Punjabi, Balochi, Saraiki, Pushto
+- 🗣️ **Text-to-Speech**: Azure Speech Service integration for English, Urdu, Punjabi, Pushto
 - 🤖 **Google Gemini AI Integration**: Advanced AI responses for truck drivers
 - 🔄 **Auto-routing**: Intelligent language detection and routing
 - 📱 **RESTful API**: Clean, documented REST endpoints
@@ -89,8 +90,8 @@ truck-driver-assistant/
 
 1. **Clone the repository:**
 ```bash
-git clone <repository-url>
-cd truck-driver-assistant
+git clone https://github.com/Ukaab-The-Evolution/ai-chatbot.git
+cd ai-chatbot
 ```
 
 2. **Create virtual environment:**
@@ -133,7 +134,7 @@ No authentication required for this version.
 
 ### Base URL
 - Local: `http://localhost:8000`
-- Production: `https://your-railway-app.railway.app`
+- Production: `https://web-production-84522.up.railway.app`
 
 ### Endpoints
 
