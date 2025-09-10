@@ -9,8 +9,9 @@ from typing import Dict, Optional
 
 from .interfaces import ChatServiceInterface, TTSServiceInterface
 from .gemini_service import GeminiChatService
-from .tts_service import MasAITTSService
+from .tts_service import AzureTTSService
 from ..models.schemas import SpeechResponse
+from ..core.config import Settings
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -25,7 +26,8 @@ class EnhancedChatService:
     def __init__(
         self, 
         chat_service: ChatServiceInterface = None,
-        tts_service: TTSServiceInterface = None
+        tts_service: TTSServiceInterface = None,
+        settings: Settings = None
     ):
         """
         Initialize enhanced chat service.
@@ -33,9 +35,11 @@ class EnhancedChatService:
         Args:
             chat_service: Chat service for text generation
             tts_service: TTS service for speech synthesis
+            settings: Application settings
         """
+        self.settings = settings or Settings()
         self.chat_service = chat_service or GeminiChatService()
-        self.tts_service = tts_service or MasAITTSService()
+        self.tts_service = tts_service or AzureTTSService(self.settings)
         logger.info("Enhanced chat service initialized")
     
     async def generate_response(

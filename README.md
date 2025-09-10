@@ -43,6 +43,7 @@ truck-driver-assistant/
 ## ✨ Features
 
 - 🌍 **Multi-language Support**: English, Urdu, Punjabi, Balochi, Saraiki, Pushto
+- 🗣️ **Text-to-Speech**: Azure Speech Service integration for English, Urdu, Punjabi, Pushto
 - 🤖 **Google Gemini AI Integration**: Advanced AI responses for truck drivers
 - 🔄 **Auto-routing**: Intelligent language detection and routing
 - 📱 **RESTful API**: Clean, documented REST endpoints
