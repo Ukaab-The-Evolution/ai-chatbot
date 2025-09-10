@@ -21,6 +21,18 @@ class Context(BaseModel):
     language: Optional[str] = Field(None, description="Preferred language code")
 
 
+class SpeechRequest(BaseModel):
+    """Speech synthesis request parameters."""
+    include_speech: bool = Field(False, description="Whether to include speech synthesis")
+    speech_language: Optional[str] = Field(None, description="Language for speech synthesis (english, urdu, punjabi)")
+
+
+class SpeechResponse(BaseModel):
+    """Speech synthesis response data."""
+    mime_type: str = Field(..., description="MIME type of the audio data")
+    data_url: str = Field(..., description="Base64 encoded audio data URL")
+
+
 class Attachment(BaseModel):
     """Attachment model for file uploads."""
     type: str = Field(..., description="Type of attachment (pdf, image, etc.)")
@@ -37,6 +49,8 @@ class ChatRequest(BaseModel):
     attachments: Optional[List[Attachment]] = Field(None, description="File attachments")
     location: Optional[Location] = Field(None, description="User location")
     timestamp: str = Field(..., description="Timestamp of the message")
+    include_speech: bool = Field(False, description="Whether to include speech synthesis in response")
+    speech_language: Optional[str] = Field(None, description="Language for speech synthesis (english, urdu, punjabi)")
 
 
 class ChatResponse(BaseModel):
@@ -45,15 +59,23 @@ class ChatResponse(BaseModel):
     language: str = Field(..., description="Language of the response")
     timestamp: str = Field(..., description="Response timestamp")
     user_id: str = Field(..., description="User ID from request")
+    speech: Optional[SpeechResponse] = Field(None, description="Speech synthesis data if requested")
     
     @classmethod
-    def create(cls, response: str, language: str, user_id: str) -> "ChatResponse":
+    def create(
+        cls, 
+        response: str, 
+        language: str, 
+        user_id: str, 
+        speech: Optional[SpeechResponse] = None
+    ) -> "ChatResponse":
         """Factory method to create a ChatResponse with current timestamp."""
         return cls(
             response=response,
             language=language,
             timestamp=datetime.now().isoformat(),
-            user_id=user_id
+            user_id=user_id,
+            speech=speech
         )
 
 
