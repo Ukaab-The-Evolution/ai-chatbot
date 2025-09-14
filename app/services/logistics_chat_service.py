@@ -254,7 +254,7 @@ class LogisticsChatService:
                 end_index = response.find(end_marker, start_index)
                 if end_index != -1:
                     json_content = response[start_index:end_index].strip()
-                    logger.info("Extracted JSON from markdown code blocks")
+                    logger.debug(f"Extracted JSON from markdown code blocks : '{json_content}...'")
                     return json_content
         
         # If no markdown blocks found, return the original response
