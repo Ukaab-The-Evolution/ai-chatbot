@@ -69,19 +69,19 @@ class LogisticsChatService:
                 )
             
             # Step 2: Generate AI response with structured data parsing
-            ai_response, logistics_data = await self._generate_structured_response(
+            response_text, logistics_data = await self._generate_structured_response(
                 message_text, language, request
             )
             
-            # Step 3: Optional speech synthesis
+            # Step 3: Optional speech synthesis (only use response text, not full JSON)
             speech_data = None
-            if request.include_speech and ai_response:
+            if request.include_speech and response_text:
                 speech_language = request.speech_language or language
-                speech_data = await self._synthesize_speech(ai_response, speech_language)
+                speech_data = await self._synthesize_speech(response_text, speech_language)
             
             # Step 4: Create enhanced response
             return ChatResponse.create(
-                response=ai_response,
+                response=response_text,
                 language=language,
                 user_id=request.user_id,
                 speech=speech_data,
@@ -190,6 +190,7 @@ class LogisticsChatService:
     def _parse_structured_response(self, ai_response: str) -> Tuple[Optional[str], Optional[LogisticsData]]:
         """
         Parse JSON response from AI to extract response text and logistics data.
+        Handles both direct JSON and JSON wrapped in markdown code blocks.
         
         Args:
             ai_response: Raw AI response
@@ -198,8 +199,11 @@ class LogisticsChatService:
             Tuple of (response_text, logistics_data)
         """
         try:
+            # Extract JSON from markdown code blocks if present
+            json_content = self._extract_json_from_response(ai_response)
+            
             # Try to parse as JSON
-            parsed = json.loads(ai_response)
+            parsed = json.loads(json_content)
             
             # Extract response message
             response_text = parsed.get("response")
@@ -227,6 +231,34 @@ class LogisticsChatService:
         except Exception as e:
             logger.error(f"Error parsing structured response: {str(e)}")
             return ai_response, None
+    
+    def _extract_json_from_response(self, response: str) -> str:
+        """
+        Extract JSON content from response, handling markdown code blocks.
+        
+        Args:
+            response: Raw AI response
+            
+        Returns:
+            Clean JSON string
+        """
+        # Check if response contains markdown code blocks
+        if "```json" in response and "```" in response:
+            # Extract content between ```json and ```
+            start_marker = "```json"
+            end_marker = "```"
+            
+            start_index = response.find(start_marker)
+            if start_index != -1:
+                start_index += len(start_marker)
+                end_index = response.find(end_marker, start_index)
+                if end_index != -1:
+                    json_content = response[start_index:end_index].strip()
+                    logger.info("Extracted JSON from markdown code blocks")
+                    return json_content
+        
+        # If no markdown blocks found, return the original response
+        return response.strip()
     
     def _build_context(self, request: ChatRequest) -> Dict:
         """Build context dictionary from request."""
