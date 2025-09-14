@@ -44,7 +44,8 @@ class ChatRequest(BaseModel):
     """Chat request model for incoming messages."""
     user_id: str = Field(..., description="Unique identifier for the user")
     role: str = Field(..., description="Role of the message sender")
-    message: str = Field(..., description="The chat message")
+    message: Optional[str] = Field(None, description="The chat message (optional if audio_stream provided)")
+    audio_stream: Optional[str] = Field(None, description="Base64 encoded audio data for voice input")
     context: Optional[Context] = Field(None, description="Additional context information")
     attachments: Optional[List[Attachment]] = Field(None, description="File attachments")
     location: Optional[Location] = Field(None, description="User location")
@@ -53,21 +54,36 @@ class ChatRequest(BaseModel):
     speech_language: Optional[str] = Field(None, description="Language for speech synthesis (english, urdu, punjabi)")
 
 
+class LogisticsData(BaseModel):
+    """Structured logistics data extracted from messages."""
+    origin: Optional[str] = Field(None, description="Origin location")
+    destination: Optional[str] = Field(None, description="Destination location")
+    pick_up_time: Optional[str] = Field(None, description="Pickup time/date")
+    cargo_type: Optional[str] = Field(None, description="Type of cargo")
+    weight: Optional[str] = Field(None, description="Weight of cargo")
+    special_requirements: Optional[str] = Field(None, description="Special handling requirements")
+    payment_offer: Optional[str] = Field(None, description="Payment amount offered")
+    number_of_trucks: Optional[int] = Field(None, description="Number of trucks needed")
+    is_pooling: Optional[bool] = Field(None, description="Whether cargo pooling is available")
+
+
 class ChatResponse(BaseModel):
     """Chat response model for outgoing messages."""
-    response: str = Field(..., description="AI generated response")
+    response: Optional[str] = Field(None, description="AI generated response message")
     language: str = Field(..., description="Language of the response")
     timestamp: str = Field(..., description="Response timestamp")
     user_id: str = Field(..., description="User ID from request")
     speech: Optional[SpeechResponse] = Field(None, description="Speech synthesis data if requested")
+    data: Optional[LogisticsData] = Field(None, description="Structured logistics data if parsed from message")
     
     @classmethod
     def create(
         cls, 
-        response: str, 
+        response: Optional[str], 
         language: str, 
         user_id: str, 
-        speech: Optional[SpeechResponse] = None
+        speech: Optional[SpeechResponse] = None,
+        data: Optional[LogisticsData] = None
     ) -> "ChatResponse":
         """Factory method to create a ChatResponse with current timestamp."""
         return cls(
@@ -75,7 +91,8 @@ class ChatResponse(BaseModel):
             language=language,
             timestamp=datetime.now().isoformat(),
             user_id=user_id,
-            speech=speech
+            speech=speech,
+            data=data
         )
 
 

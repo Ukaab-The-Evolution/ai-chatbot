@@ -73,3 +73,35 @@ class TTSServiceInterface(ABC):
     def get_supported_languages(self) -> list:
         """Get list of supported TTS languages."""
         pass
+
+
+class STTServiceInterface(ABC):
+    """Abstract interface for Speech-to-Text services."""
+    
+    @abstractmethod
+    def is_language_supported(self, language: str) -> bool:
+        """Check if language is supported for STT."""
+        pass
+    
+    @abstractmethod
+    async def transcribe_audio(
+        self, 
+        audio_data: str, 
+        language: str = "auto"
+    ) -> Optional[str]:
+        """
+        Transcribe audio to text.
+        
+        Args:
+            audio_data: Base64 encoded audio data
+            language: Language hint for transcription
+            
+        Returns:
+            Transcribed text or None if transcription fails
+        """
+        pass
+    
+    @abstractmethod
+    def get_supported_languages(self) -> list:
+        """Get list of supported STT languages."""
+        pass

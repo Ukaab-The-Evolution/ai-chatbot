@@ -4,8 +4,11 @@ Following Single Responsibility Principle - handles only configuration.
 """
 
 import os
+import logging
 from dotenv import load_dotenv
 from typing import Dict
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv(".env")
@@ -29,7 +32,7 @@ class Settings:
             raise ValueError("GEMINI_API_KEY not found in environment variables")
         
         if not self.azure_speech_key or not self.azure_speech_region:
-            raise ValueError("Azure Speech Service credentials not found - TTS will be disabled")
+            logger.warning("Azure Speech Service credentials not found - TTS will be disabled")
     
     @property
     def cors_origins(self) -> list:
